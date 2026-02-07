@@ -1,0 +1,43 @@
+/* Theme Variables for SMOVE Communication */
+
+:root {
+  /* Primary Brand Colors */
+  --color-primary: #00B3E8;
+  --color-primary-light: #EBF9FF;
+  --color-primary-dark: #00C0E8;
+  
+  /* Secondary Colors */
+  --color-secondary: #34C759;
+  --color-secondary-dark: #01A590;
+  
+  /* Social Media Colors */
+  --color-discord: #5869EA;
+  --color-twitter: #4AA0EB;
+  --color-telegram: #1A8BD8;
+  --color-facebook: #1877F2;
+  --color-youtube: #FF0000;
+  
+  /* Text Colors */
+  --color-text-primary: #273A41;
+  --color-text-secondary: #38484E;
+  --color-text-muted: #9BA1A4;
+  --color-text-light: #687F87;
+  
+  /* Background Colors */
+  --color-bg-light: #F5F9FA;
+  --color-bg-white: #FFFFFF;
+  --color-bg-dark: #02033B;
+  --color-bg-black: #000000;
+  
+  /* UI Colors */
+  --color-border: #EEF3F5;
+  --color-shadow: rgba(234, 241, 246, 0.5);
+  --color-overlay: rgba(22, 33, 36, 0.47);
+  
+  /* Accent Colors */
+  --color-accent-yellow: #FFC247;
+  --color-accent-green: #0EC742;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(to bottom, #F5F9FA, rgba(245, 249, 250, 0));
+}
