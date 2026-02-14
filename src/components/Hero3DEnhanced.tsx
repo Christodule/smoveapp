@@ -1,429 +1,277 @@
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'motion/react';
-import { useRef, useEffect, useState } from 'react';
-import { ArrowDown, Sparkles, Zap, Star, Globe } from 'lucide-react';
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from 'motion/react';
+import { useEffect, useRef } from 'react';
+import { ArrowDown, ArrowRight, Sparkles } from 'lucide-react';
 
 export default function Hero3DEnhanced() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const smoothTiltX = useSpring(tiltX, { stiffness: 140, damping: 24 });
+  const smoothTiltY = useSpring(tiltY, { stiffness: 140, damping: 24 });
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start start", "end start"]
+    offset: ['start start', 'end start'],
   });
 
-  // Smooth mouse tracking
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const smoothMouseX = useSpring(mouseX, { stiffness: 100, damping: 20 });
-  const smoothMouseY = useSpring(mouseY, { stiffness: 100, damping: 20 });
-
-  // Advanced scroll transforms
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.5, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.95, 0.8]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, -300]);
-  const rotateX = useTransform(scrollYProgress, [0, 1], [0, 20]);
-  const blur = useTransform(scrollYProgress, [0, 0.5, 1], [0, 5, 15]);
-
-  // Parallax effect for background elements
-  const backgroundY = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const backgroundScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.7, 1], [1, 0.9, 0.65]);
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const backgroundY = useTransform(scrollYProgress, [0, 1], [0, 140]);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
-      const { innerWidth, innerHeight } = window;
-      
-      const x = (clientX / innerWidth - 0.5) * 2;
-      const y = (clientY / innerHeight - 0.5) * 2;
-      
-      setMousePosition({ x, y });
-      mouseX.set(x * 50);
-      mouseY.set(y * 50);
+    const stage = stageRef.current;
+    if (!stage) {
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const bounds = stage.getBoundingClientRect();
+      const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+      const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+
+      tiltY.set(x * 12);
+      tiltX.set(-y * 10);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY]);
+    const resetTilt = () => {
+      tiltX.set(0);
+      tiltY.set(0);
+    };
+
+    stage.addEventListener('pointermove', handlePointerMove);
+    stage.addEventListener('pointerleave', resetTilt);
+
+    return () => {
+      stage.removeEventListener('pointermove', handlePointerMove);
+      stage.removeEventListener('pointerleave', resetTilt);
+    };
+  }, [tiltX, tiltY]);
+
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    section?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
-    <motion.div 
+    <motion.section
       ref={containerRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0d1f2d] via-[#1a2f3d] to-[#0d1f2d]"
-      style={{ opacity, position: 'relative' }}
+      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0d1f2d] via-[#1a2f3d] to-[#0d1f2d] pt-32 pb-20"
+      style={{ opacity: heroOpacity }}
     >
-      {/* 3D Perspective Container */}
-      <motion.div 
-        className="absolute inset-0"
-        style={{ 
-          scale: backgroundScale,
-          y: backgroundY,
-          transformStyle: 'preserve-3d',
-        }}
-      >
-        {/* Advanced Grid Pattern with Perspective */}
+      <motion.div className="absolute inset-0" style={{ y: backgroundY }}>
         <motion.div
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(0, 179, 232, 0.15) 2px, transparent 2px),
-              linear-gradient(90deg, rgba(0, 179, 232, 0.15) 2px, transparent 2px),
-              linear-gradient(rgba(0, 179, 232, 0.05) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 179, 232, 0.05) 1px, transparent 1px)
+              linear-gradient(rgba(0, 179, 232, 0.12) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 179, 232, 0.12) 1px, transparent 1px)
             `,
-            backgroundSize: '100px 100px, 100px 100px, 20px 20px, 20px 20px',
-            transformStyle: 'preserve-3d',
+            backgroundSize: '64px 64px',
           }}
-          animate={{
-            backgroundPosition: [
-              '0% 0%, 0% 0%, 0% 0%, 0% 0%',
-              '100% 100%, 100% 100%, 20px 20px, 20px 20px'
-            ],
-          }}
-          transition={{
-            duration: 40,
-            repeat: Infinity,
-            ease: "linear",
-          }}
+          animate={{ backgroundPosition: ['0px 0px', '64px 64px'] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
         />
 
-        {/* Floating 3D Orbs with Mouse Interaction */}
-        {[...Array(8)].map((_, i) => {
-          const angle = (i / 8) * Math.PI * 2;
-          const radius = 30 + (i % 3) * 10;
-          const x = Math.cos(angle) * radius;
-          const y = Math.sin(angle) * radius;
+        <motion.div
+          className="absolute left-20 top-20 w-64 h-64 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(0, 179, 232, 0.28), rgba(0, 179, 232, 0))',
+          }}
+          animate={{ y: [0, -30, 0], scale: [1, 1.06, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
 
-          return (
-            <motion.div
-              key={`orb-${i}`}
-              className="absolute rounded-full backdrop-blur-sm"
-              style={{
-                width: `${150 + (i % 3) * 100}px`,
-                height: `${150 + (i % 3) * 100}px`,
-                left: `${50 + x}%`,
-                top: `${50 + y}%`,
-                background: i % 3 === 0 
-                  ? 'radial-gradient(circle at 30% 30%, rgba(0, 179, 232, 0.2), rgba(0, 179, 232, 0.05), transparent)'
-                  : i % 3 === 1
-                  ? 'radial-gradient(circle at 30% 30%, rgba(52, 199, 89, 0.2), rgba(52, 199, 89, 0.05), transparent)'
-                  : 'radial-gradient(circle at 30% 30%, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05), transparent)',
-                transformStyle: 'preserve-3d',
-                x: smoothMouseX,
-                y: smoothMouseY,
-              }}
-              animate={{
-                y: [0, -80 * (1 + i * 0.2), 0],
-                x: [0, 40 * Math.cos(i), 0],
-                scale: [1, 1.3, 1],
-                rotate: [0, 180 * (i % 2 === 0 ? 1 : -1), 360 * (i % 2 === 0 ? 1 : -1)],
-              }}
-              transition={{
-                duration: 15 + i * 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.5,
-              }}
-            />
-          );
-        })}
-
-        {/* Particle System */}
-        {[...Array(50)].map((_, i) => (
-          <motion.div
-            key={`particle-${i}`}
-            className="absolute rounded-full"
-            style={{
-              width: `${2 + (i % 3)}px`,
-              height: `${2 + (i % 3)}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              background: i % 3 === 0 ? '#00b3e8' : i % 3 === 1 ? '#34c759' : '#a855f7',
-              boxShadow: `0 0 ${10 + (i % 3) * 5}px currentColor`,
-            }}
-            animate={{
-              y: [0, -200 - Math.random() * 200, 0],
-              x: [0, (Math.random() - 0.5) * 100, 0],
-              opacity: [0, 1, 0.8, 0],
-              scale: [0, 1.5, 1, 0],
-            }}
-            transition={{
-              duration: 5 + Math.random() * 5,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-              ease: "easeOut",
-            }}
-          />
-        ))}
-
-        {/* Animated Light Beams */}
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={`beam-${i}`}
-            className="absolute"
-            style={{
-              width: '2px',
-              height: '100%',
-              left: `${20 + i * 30}%`,
-              background: `linear-gradient(to bottom, 
-                transparent, 
-                ${i === 0 ? 'rgba(0, 179, 232, 0.3)' : i === 1 ? 'rgba(52, 199, 89, 0.3)' : 'rgba(168, 85, 247, 0.3)'}, 
-                transparent)`,
-              transformOrigin: 'top',
-            }}
-            animate={{
-              scaleY: [0, 1, 0],
-              opacity: [0, 0.8, 0],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              delay: i * 1.5,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
-
-        {/* 3D Rotating Rings */}
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={`ring-${i}`}
-            className="absolute left-1/2 top-1/2"
-            style={{
-              width: `${400 + i * 200}px`,
-              height: `${400 + i * 200}px`,
-              marginLeft: `-${200 + i * 100}px`,
-              marginTop: `-${200 + i * 100}px`,
-              border: `1px solid ${i === 0 ? 'rgba(0, 179, 232, 0.2)' : i === 1 ? 'rgba(52, 199, 89, 0.2)' : 'rgba(168, 85, 247, 0.2)'}`,
-              borderRadius: '50%',
-              transformStyle: 'preserve-3d',
-            }}
-            animate={{
-              rotateY: [0, 360],
-              rotateX: [0, 20, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              duration: 20 + i * 5,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          />
-        ))}
+        <motion.div
+          className="absolute right-20 bottom-20 w-96 h-96 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(52, 199, 89, 0.24), rgba(52, 199, 89, 0))',
+          }}
+          animate={{ y: [0, 24, 0], scale: [1, 1.08, 1] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+        />
       </motion.div>
 
-      {/* Main Content with 3D Transform */}
-      <motion.div
-        className="relative z-10 text-center px-4 max-w-6xl"
-        style={{ 
-          scale,
-          y,
-          rotateX,
-          filter: blur.get() > 0 ? `blur(${blur.get()}px)` : 'none',
-        }}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-      >
-        {/* Animated Badge */}
-        <motion.div
-          className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-6 py-3 mb-8"
-          initial={{ opacity: 0, y: 30, scale: 0.8 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          >
-            <Sparkles className="text-[#00b3e8]" size={20} />
-          </motion.div>
-          <span className="font-['Abhaya_Libre:Bold',sans-serif] text-[14px] text-white">
-            Agence Digitale Premium
-          </span>
-          <Star className="text-[#34c759]" size={16} />
-        </motion.div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent" />
 
-        {/* Main Title with Advanced Animation */}
-        <motion.div
-          className="mb-6 relative"
-          style={{
-            x: smoothMouseX,
-            y: smoothMouseY,
-          }}
-        >
-          <motion.h1 
-            className="font-['Medula_One:Regular',sans-serif] text-[64px] md:text-[96px] lg:text-[120px] tracking-[6px] md:tracking-[12px] uppercase mb-4 relative"
-            initial={{ opacity: 0, y: 50, rotateX: -20 }}
-            animate={{ opacity: 1, y: 0, rotateX: 0 }}
-            transition={{ duration: 1, delay: 0.4 }}
+      <motion.div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style={{ y: heroY }}>
+        <div className="text-center">
+          <motion.div
+            className="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-md rounded-full px-6 py-3 mb-8"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
           >
-            {/* Gradient Text with Animation */}
-            <motion.span
-              className="bg-gradient-to-r from-[#00b3e8] via-[#34c759] to-[#a855f7] bg-clip-text text-transparent"
-              style={{
-                backgroundSize: '200% auto',
-              }}
-              animate={{
-                backgroundPosition: ['0% center', '200% center'],
-              }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-            >
-              SMOVE
-            </motion.span>
-            
-            {/* Glowing Effect */}
-            <motion.span
-              className="absolute inset-0 bg-gradient-to-r from-[#00b3e8] via-[#34c759] to-[#a855f7] bg-clip-text text-transparent blur-2xl opacity-50"
-              animate={{
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              SMOVE
-            </motion.span>
+            <Sparkles className="text-[#00b3e8]" size={18} />
+            <span className="font-['Abhaya_Libre:Bold',sans-serif] text-[14px] text-white tracking-[1.6px] uppercase">
+              Agence de communication
+            </span>
+          </motion.div>
+
+          <motion.h1
+            className="font-['ABeeZee:Regular',sans-serif] text-[48px] md:text-[96px] leading-none text-white mb-6"
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+          >
+            Donnez du relief
+            <span className="block bg-gradient-to-r from-[#00b3e8] via-white to-[#34c759] bg-clip-text text-transparent">
+              à votre communication
+            </span>
           </motion.h1>
 
-          {/* Subtitle */}
           <motion.p
-            className="font-['ABeeZee:Regular',sans-serif] text-[20px] md:text-[28px] text-white/90 mb-4"
-            initial={{ opacity: 0, y: 30 }}
+            className="font-['Abhaya_Libre:Regular',sans-serif] text-[20px] text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed"
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Communication Digitale & Innovation
+            Un hero premium avec animation 3D légère, pour valoriser votre image de marque et
+            présenter vos services avec impact.
           </motion.p>
-        </motion.div>
 
-        {/* Description */}
-        <motion.p
-          className="font-['Abhaya_Libre:Regular',sans-serif] text-[18px] md:text-[20px] text-white/70 max-w-3xl mx-auto mb-12 leading-relaxed"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-        >
-          Créez une expérience digitale exceptionnelle avec notre expertise en design, 
-          développement web et production vidéo 3D. Transformons vos idées en réalité numérique.
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-6"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1 }}
-        >
-          <motion.a
-            href="#services"
-            className="group relative px-8 py-4 bg-gradient-to-r from-[#00b3e8] to-[#00c0e8] text-white rounded-[16px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px] overflow-hidden"
-            whileHover={{ scale: 1.05, boxShadow: '0 20px 50px rgba(0, 179, 232, 0.4)' }}
-            whileTap={{ scale: 0.95 }}
+          <motion.div
+            className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
           >
-            {/* Animated Background */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-[#00c0e8] to-[#00b3e8]"
-              initial={{ x: '-100%' }}
-              whileHover={{ x: 0 }}
-              transition={{ duration: 0.3 }}
-            />
-            
-            <span className="relative z-10 flex items-center gap-2">
-              Découvrir nos services
-              <motion.div
-                animate={{ x: [0, 5, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                <Zap size={20} />
-              </motion.div>
-            </span>
-          </motion.a>
-
-          <motion.a
-            href="#portfolio"
-            className="group px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-[16px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px]"
-            whileHover={{ 
-              scale: 1.05, 
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderColor: 'rgba(255, 255, 255, 0.5)',
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className="flex items-center gap-2">
-              Voir nos projets
-              <Globe size={20} />
-            </span>
-          </motion.a>
-        </motion.div>
-
-        {/* Statistics */}
-        <motion.div
-          className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.2 }}
-        >
-          {[
-            { value: '150+', label: 'Projets Réalisés' },
-            { value: '98%', label: 'Satisfaction Client' },
-            { value: '8+', label: 'Années d\'Expérience' },
-            { value: '24/7', label: 'Support Disponible' },
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[16px] p-6"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 1.4 + index * 0.1 }}
-              whileHover={{ 
-                scale: 1.05, 
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderColor: 'rgba(0, 179, 232, 0.5)',
+            <motion.a
+              href="#services"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#00b3e8] to-[#00c0e8] text-white px-8 py-4 rounded-[16px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px]"
+              whileHover={{ scale: 1.04, boxShadow: '0 20px 50px rgba(0, 179, 232, 0.35)' }}
+              whileTap={{ scale: 0.96 }}
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToSection('services');
               }}
             >
-              <motion.p
-                className="font-['Medula_One:Regular',sans-serif] text-[36px] text-[#00b3e8] mb-2"
-                animate={{ scale: isHovering ? [1, 1.1, 1] : 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                {stat.value}
-              </motion.p>
-              <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-white/70">
-                {stat.label}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </motion.div>
+              Découvrir nos services
+              <ArrowRight size={18} />
+            </motion.a>
 
-      {/* Scroll Indicator */}
-      <motion.div
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.6 }}
-      >
-        <motion.p
-          className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-white/50"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          Scroll pour découvrir
-        </motion.p>
+            <motion.a
+              href="#contact"
+              className="inline-flex items-center gap-2 bg-white/10 border-2 border-white/30 text-white px-8 py-4 rounded-[16px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px] backdrop-blur-md"
+              whileHover={{ scale: 1.04, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+              whileTap={{ scale: 0.96 }}
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToSection('contact');
+              }}
+            >
+              Lancer un projet
+            </motion.a>
+          </motion.div>
+        </div>
+
         <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          ref={stageRef}
+          className="relative h-[500px] w-full flex items-center justify-center cursor-pointer"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.4 }}
         >
-          <ArrowDown className="text-white/50" size={24} />
+          <div className="relative w-full h-[500px] flex items-center justify-center" style={{ perspective: 1200 }}>
+            <motion.div
+              className="relative h-[324px] w-[600px]"
+              style={{
+                rotateX: smoothTiltX,
+                rotateY: smoothTiltY,
+                transformStyle: 'preserve-3d',
+              }}
+            >
+              <motion.div
+                className="absolute inset-0 rounded-[24px] bg-white/10 border border-white/20 backdrop-blur-md shadow-2xl p-8"
+                style={{ transform: 'translateZ(40px)' }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="size-[12px] rounded-full bg-[#ff5f56]" />
+                    <span className="size-[12px] rounded-full bg-[#ffbd2e]" />
+                    <span className="size-[12px] rounded-full bg-[#27c93f]" />
+                  </div>
+                  <span className="font-['Abhaya_Libre:Bold',sans-serif] text-[14px] text-white/70">
+                    Campagne 360°
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  {[42, 78, 62].map((value, index) => (
+                    <div key={index} className="bg-white/5 border border-white/10 rounded-[12px] p-4">
+                      <div className="font-['ABeeZee:Regular',sans-serif] text-[28px] text-white mb-1">{value}%</div>
+                      <div className="font-['Abhaya_Libre:Regular',sans-serif] text-[12px] text-white/65">
+                        Performance
+                      </div>
+                      <div className="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-gradient-to-r from-[#00b3e8] to-[#34c759]"
+                          initial={{ width: '0%' }}
+                          animate={{ width: `${value}%` }}
+                          transition={{ duration: 1.2, delay: 0.5 + index * 0.2 }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  {[90, 72, 58].map((line, index) => (
+                    <div key={index} className="h-3 bg-white/10 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-[#00b3e8]/5 to-[#2da84a]/10 rounded-full"
+                        initial={{ width: '0%' }}
+                        animate={{ width: `${line}%` }}
+                        transition={{ duration: 1, delay: 0.9 + index * 0.15 }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="hidden md:block absolute top-4 -right-20 w-[280px] bg-white/10 border border-white/20 rounded-[16px] backdrop-blur-sm p-4"
+                style={{ transform: 'translateZ(120px)' }}
+                animate={{ y: [0, -12, 0], rotate: [-4, -2, -4] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <p className="font-['Abhaya_Libre:Bold',sans-serif] text-[14px] text-[#00b3e8] mb-2">Brand Content</p>
+                <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-white/80">
+                  Storytelling, visuels et activation social media.
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="hidden md:block absolute -left-8 bottom-8 w-[280px] bg-white/10 border border-white/20 rounded-[16px] backdrop-blur-sm p-4"
+                style={{ transform: 'translateZ(100px)' }}
+                animate={{ y: [0, 10, 0], rotate: [3, 1, 3] }}
+                transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+              >
+                <p className="font-['Abhaya_Libre:Bold',sans-serif] text-[14px] text-[#34c759] mb-2">Web & Performance</p>
+                <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-white/80">
+                  Site vitrine, tunnel de conversion et suivi KPI.
+                </p>
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="flex flex-col items-center gap-2 text-white/50"
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.8 }}
+          onClick={() => scrollToSection('services')}
+        >
+          <span className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px]">Scroll pour découvrir</span>
+          <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>
+            <ArrowDown size={22} />
+          </motion.div>
         </motion.div>
       </motion.div>
-    </motion.div>
+    </motion.section>
   );
 }
