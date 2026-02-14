@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import Hero3DEnhanced from './components/Hero3DEnhanced';
 import Footer from './components/Footer';
-import ContactPage from './components/ContactPage';
 import PortfolioPage from './components/PortfolioPage';
 import BlogPageEnhanced from './components/BlogPageEnhanced';
 import ServicesHubPage from './components/ServicesHubPage';
@@ -17,8 +16,6 @@ import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import CMSDashboard from './components/cms/CMSDashboard';
 import APropos from './imports/APropos';
-import Projets from './imports/Projets';
-import Services from './imports/Services';
 import { Palette, Code, Megaphone, Video, Box, ArrowRight, Calendar, User } from 'lucide-react';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 
@@ -582,13 +579,36 @@ function HomePageContent() {
   );
 }
 
-export default function App() {
+const HOME_SECTION_HASHES = new Set(['services', 'about', 'portfolio', 'contact']);
+
+function AppContent() {
+  const { isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState('home');
   const [cmsSection, setCmsSection] = useState('overview');
+  const [pendingHomeSection, setPendingHomeSection] = useState<string | null>(null);
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1) || 'home';
+
+      if (HOME_SECTION_HASHES.has(hash)) {
+        setCurrentPage('home');
+        setPendingHomeSection(hash);
+        return;
+      }
+
+      if (hash === 'cms-dashboard') {
+        setCurrentPage(hash);
+        setCmsSection('overview');
+        return;
+      }
+
+      if (hash.startsWith('cms-')) {
+        setCurrentPage(hash);
+        setCmsSection(hash.replace('cms-', ''));
+        return;
+      }
+
       setCurrentPage(hash);
     };
 
@@ -599,8 +619,31 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (currentPage === 'home' && pendingHomeSection) {
+      return;
+    }
     window.scrollTo(0, 0);
-  }, [currentPage]);
+  }, [currentPage, pendingHomeSection]);
+
+  useEffect(() => {
+    if (currentPage !== 'home' || !pendingHomeSection) {
+      return;
+    }
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      const section = document.getElementById(pendingHomeSection);
+      section?.scrollIntoView({ behavior: 'smooth' });
+      setPendingHomeSection(null);
+    });
+
+    return () => window.cancelAnimationFrame(animationFrameId);
+  }, [currentPage, pendingHomeSection]);
+
+  useEffect(() => {
+    if (!isAuthenticated && (currentPage === 'cms-dashboard' || currentPage.startsWith('cms-'))) {
+      window.location.hash = 'login';
+    }
+  }, [currentPage, isAuthenticated]);
 
   const renderPage = () => {
     // Auth pages
@@ -613,6 +656,9 @@ export default function App() {
 
     // CMS pages
     if (currentPage === 'cms-dashboard' || currentPage.startsWith('cms-')) {
+      if (!isAuthenticated) {
+        return <LoginPage />;
+      }
       return <CMSDashboard currentSection={cmsSection} onSectionChange={setCmsSection} />;
     }
 
@@ -663,34 +709,40 @@ export default function App() {
   };
 
   return (
-    <AuthProvider>
-      <div className="min-h-screen">
-        {renderPage()}
-        
-        {/* Scroll to Top Button - hide on auth/cms pages */}
-        {!['login', 'register'].includes(currentPage) && !currentPage.startsWith('cms-') && (
-          <motion.button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-8 right-8 bg-[#00b3e8] text-white p-4 rounded-full shadow-lg z-50"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.1, backgroundColor: '#00c0e8' }}
-            whileTap={{ scale: 0.9 }}
+    <div className="min-h-screen">
+      {renderPage()}
+      
+      {/* Scroll to Top Button - hide on auth/cms pages */}
+      {!['login', 'register'].includes(currentPage) && !currentPage.startsWith('cms-') && (
+        <motion.button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-8 right-8 bg-[#00b3e8] text-white p-4 rounded-full shadow-lg z-50"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.1, backgroundColor: '#00c0e8' }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-          </motion.button>
-        )}
-      </div>
+            <path d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        </motion.button>
+      )}
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 }

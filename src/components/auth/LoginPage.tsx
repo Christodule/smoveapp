@@ -149,7 +149,7 @@ export default function LoginPage() {
             </p>
           </motion.div>
 
-          {/* Demo Info */}
+          {/* Access Info */}
           <motion.div
             className="bg-[#00b3e8]/10 border border-[#00b3e8]/20 rounded-[12px] p-4 mb-6"
             initial={{ opacity: 0, y: 20 }}
@@ -157,13 +157,10 @@ export default function LoginPage() {
             transition={{ delay: 0.4 }}
           >
             <p className="font-['Abhaya_Libre:Bold',sans-serif] text-[14px] text-[#00b3e8] mb-2">
-              Compte de démonstration:
+              Accès CMS sécurisé
             </p>
             <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[12px] text-[#273a41]">
-              Email: <code className="bg-white px-2 py-1 rounded">admin@smove.com</code>
-            </p>
-            <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[12px] text-[#273a41]">
-              Mot de passe: <code className="bg-white px-2 py-1 rounded">admin123</code>
+              Les identifiants d'administration sont gérés en interne.
             </p>
           </motion.div>
 

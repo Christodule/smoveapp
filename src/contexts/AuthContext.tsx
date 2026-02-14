@@ -38,8 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (u: any) => u.email === email && u.password === password
     );
 
-    // Default admin account
-    if (email === 'admin@smove.com' && password === 'admin123') {
+    // Demo admin account is limited to development mode only.
+    if (import.meta.env.DEV && email === 'admin@smove.com' && password === 'admin123') {
       const adminUser: User = {
         id: '1',
         email: 'admin@smove.com',

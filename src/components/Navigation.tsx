@@ -15,29 +15,54 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string, sectionId?: string) => {
     e.preventDefault();
     
-    // If we're on homepage and clicking a section link
-    if (window.location.hash === '#home' || window.location.hash === '' || !window.location.hash) {
-      if (sectionId) {
+    if (sectionId) {
+      // If we're already on homepage, scroll directly.
+      if (window.location.hash === '#home' || window.location.hash === '' || !window.location.hash) {
         const section = document.getElementById(sectionId);
         if (section) {
           section.scrollIntoView({ behavior: 'smooth' });
           return;
         }
       }
+
+      // Otherwise navigate via section hash; App maps it back to home + smooth scroll.
+      window.location.hash = sectionId;
+      return;
     }
     
-    // Otherwise navigate normally
+    // Otherwise navigate normally.
     window.location.hash = path;
   };
 
   const navItems = [
     { name: 'Home', path: '#home', icon: Home },
-    { name: 'A Propos', path: '#apropos', icon: Info },
+    { name: 'A Propos', path: '#about', icon: Info },
     { name: 'Services', path: '#services', icon: Briefcase },
     { name: 'Portfolio', path: '#portfolio', icon: FolderOpen },
     { name: 'Blog', path: '#blog', icon: BookOpen },
     { name: 'Contact', path: '#contact', icon: Mail },
   ];
+
+  const handleMobileNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (path === '#home') {
+      handleNavClick(e, 'home');
+    } else if (path === '#about') {
+      handleNavClick(e, 'home', 'about');
+    } else if (path === '#services') {
+      handleNavClick(e, 'home', 'services');
+    } else if (path === '#portfolio') {
+      handleNavClick(e, 'home', 'portfolio');
+    } else if (path === '#contact') {
+      handleNavClick(e, 'home', 'contact');
+    } else if (path === '#blog') {
+      handleNavClick(e, 'blog');
+    } else {
+      e.preventDefault();
+      window.location.hash = path;
+    }
+
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <motion.nav
@@ -194,7 +219,7 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
                   className={`flex items-center gap-3 text-white py-2 px-3 rounded-lg hover:bg-white/10 transition-colors ${
                     currentPath === item.path ? 'bg-white/20 font-bold' : ''
                   }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(e) => handleMobileNavClick(e, item.path)}
                 >
                   <Icon size={20} />
                   <span className="font-['Abhaya_Libre:Regular',sans-serif]">{item.name}</span>
@@ -234,8 +259,9 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             )}
 
             <a
-              href="/contact"
+              href="#contact"
               className="block bg-[#34c759] text-white text-center py-3 rounded-[15px] font-['Abhaya_Libre:Bold',sans-serif] mt-4"
+              onClick={(e) => handleMobileNavClick(e, '#contact')}
             >
               Contact
             </a>
