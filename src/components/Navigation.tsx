@@ -11,32 +11,41 @@ interface NavigationProps {
 export default function Navigation({ currentPath = '/' }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const currentHash = window.location.hash.slice(1) || 'home';
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string, sectionId?: string) => {
     e.preventDefault();
-    
-    // If we're on homepage and clicking a section link
-    if (window.location.hash === '#home' || window.location.hash === '' || !window.location.hash) {
-      if (sectionId) {
+
+    const hash = window.location.hash.slice(1);
+    const isHomeContext = hash === '' || hash === 'home' || ['services', 'about', 'portfolio', 'contact'].includes(hash);
+
+    if (sectionId) {
+      if (isHomeContext) {
         const section = document.getElementById(sectionId);
         if (section) {
-          section.scrollIntoView({ behavior: 'smooth' });
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          window.history.replaceState(null, '', `#${sectionId}`);
+          setIsMobileMenuOpen(false);
           return;
         }
       }
+
+      window.location.hash = sectionId;
+      setIsMobileMenuOpen(false);
+      return;
     }
-    
-    // Otherwise navigate normally
+
     window.location.hash = path;
+    setIsMobileMenuOpen(false);
   };
 
   const navItems = [
-    { name: 'Home', path: '#home', icon: Home },
-    { name: 'A Propos', path: '#apropos', icon: Info },
-    { name: 'Services', path: '#services', icon: Briefcase },
-    { name: 'Portfolio', path: '#portfolio', icon: FolderOpen },
-    { name: 'Blog', path: '#blog', icon: BookOpen },
-    { name: 'Contact', path: '#contact', icon: Mail },
+    { name: 'Accueil', path: 'home', icon: Home },
+    { name: 'Services', path: 'home', sectionId: 'services', icon: Briefcase },
+    { name: 'À Propos', path: 'home', sectionId: 'about', icon: Info },
+    { name: 'Portfolio', path: 'home', sectionId: 'portfolio', icon: FolderOpen },
+    { name: 'Blog', path: 'blog', icon: BookOpen },
+    { name: 'Contact', path: 'home', sectionId: 'contact', icon: Mail },
   ];
 
   return (
@@ -49,7 +58,7 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <a href="/" className="flex items-center">
+          <a href="#home" className="flex items-center" onClick={(e) => handleNavClick(e, 'home')}>
             <img 
               src={imgTelegramCloudDocument} 
               alt="SMOVE Communication" 
@@ -187,14 +196,15 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
           <div className="px-4 py-4 space-y-3">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const targetHash = item.sectionId ?? item.path;
               return (
                 <a
-                  key={item.path}
-                  href={item.path}
+                  key={`${item.path}-${item.sectionId ?? 'page'}`}
+                  href={`#${targetHash}`}
                   className={`flex items-center gap-3 text-white py-2 px-3 rounded-lg hover:bg-white/10 transition-colors ${
-                    currentPath === item.path ? 'bg-white/20 font-bold' : ''
+                    currentHash === targetHash ? 'bg-white/20 font-bold' : ''
                   }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(e) => handleNavClick(e, item.path, item.sectionId)}
                 >
                   <Icon size={20} />
                   <span className="font-['Abhaya_Libre:Regular',sans-serif]">{item.name}</span>
@@ -234,8 +244,9 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             )}
 
             <a
-              href="/contact"
+              href="#contact"
               className="block bg-[#34c759] text-white text-center py-3 rounded-[15px] font-['Abhaya_Libre:Bold',sans-serif] mt-4"
+              onClick={(e) => handleNavClick(e, 'home', 'contact')}
             >
               Contact
             </a>
