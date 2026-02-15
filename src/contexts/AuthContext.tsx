@@ -1,111 +1,130 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'editor';
-}
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  fetchServerSession,
+  loginWithApi,
+  logoutWithApi,
+  registerWithApi,
+} from '../utils/authApi';
+import {
+  evaluateCmsAccess,
+  resolveTrustedSessionUser,
+  SECURITY_FLAGS,
+  type AppUser,
+} from '../utils/securityPolicy';
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isAuthReady: boolean;
+  cmsEnabled: boolean;
+  registrationEnabled: boolean;
+  canAccessCMS: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function clearLegacyClientAuthArtifacts() {
+  // Legacy keys contained credentials/session data and must no longer be trusted.
+  localStorage.removeItem('smove_user');
+  localStorage.removeItem('smove_users');
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+
+  const cmsEnabled = SECURITY_FLAGS.cmsEnabled;
+  const registrationEnabled = SECURITY_FLAGS.registrationEnabled;
+  const isAuthenticated = !!user;
+
+  const canAccessCMS =
+    evaluateCmsAccess({
+      cmsEnabled,
+      isAuthenticated,
+      user,
+    }) === 'allow';
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const storedUser = localStorage.getItem('smove_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+    let isActive = true;
+    clearLegacyClientAuthArtifacts();
+
+    const bootstrapAuth = async () => {
+      if (!cmsEnabled) {
+        if (!isActive) {
+          return;
+        }
+        setUser(null);
+        setIsAuthReady(true);
+        return;
+      }
+
+      const session = await fetchServerSession();
+      if (!isActive) {
+        return;
+      }
+
+      setCsrfToken(session.csrfToken);
+      setUser(resolveTrustedSessionUser(session.user));
+      setIsAuthReady(true);
+    };
+
+    bootstrapAuth();
+
+    return () => {
+      isActive = false;
+    };
+  }, [cmsEnabled]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Check credentials (demo purposes - in production use real API)
-    const storedUsers = JSON.parse(localStorage.getItem('smove_users') || '[]');
-    const foundUser = storedUsers.find(
-      (u: any) => u.email === email && u.password === password
-    );
-
-    // Default admin account (development only)
-    if (import.meta.env.DEV && email === 'admin@smove.com' && password === 'admin123') {
-      const adminUser: User = {
-        id: '1',
-        email: 'admin@smove.com',
-        name: 'Admin SMOVE',
-        role: 'admin',
-      };
-      setUser(adminUser);
-      localStorage.setItem('smove_user', JSON.stringify(adminUser));
-      return true;
-    }
-
-    if (foundUser) {
-      const loggedUser: User = {
-        id: foundUser.id,
-        email: foundUser.email,
-        name: foundUser.name,
-        role: foundUser.role || 'editor',
-      };
-      setUser(loggedUser);
-      localStorage.setItem('smove_user', JSON.stringify(loggedUser));
-      return true;
-    }
-
-    return false;
-  };
-
-  const register = async (email: string, password: string, name: string): Promise<boolean> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Check if user already exists
-    const storedUsers = JSON.parse(localStorage.getItem('smove_users') || '[]');
-    const userExists = storedUsers.find((u: any) => u.email === email);
-
-    if (userExists) {
+    if (!cmsEnabled) {
       return false;
     }
 
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
-      email,
-      password,
-      name,
-      role: 'editor',
-    };
+    const devAdminEmail = import.meta.env.VITE_DEV_ADMIN_EMAIL;
+    const devAdminPassword = import.meta.env.VITE_DEV_ADMIN_PASSWORD;
+    const devAdminName = import.meta.env.VITE_DEV_ADMIN_NAME || 'Dev Administrator';
 
-    storedUsers.push(newUser);
-    localStorage.setItem('smove_users', JSON.stringify(storedUsers));
+    if (
+      SECURITY_FLAGS.devAdminFallbackEnabled &&
+      devAdminEmail &&
+      devAdminPassword &&
+      email === devAdminEmail &&
+      password === devAdminPassword
+    ) {
+      setUser({
+        id: 'dev-admin',
+        email: devAdminEmail,
+        name: devAdminName,
+        role: 'admin',
+      });
+      return true;
+    }
 
-    // Auto login after registration
-    const registeredUser: User = {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      role: 'editor',
-    };
-    setUser(registeredUser);
-    localStorage.setItem('smove_user', JSON.stringify(registeredUser));
-
-    return true;
+    const result = await loginWithApi(email, password, csrfToken);
+    setCsrfToken(result.csrfToken);
+    setUser(result.user);
+    return !!result.user;
   };
 
-  const logout = () => {
+  const register = async (email: string, password: string, name: string): Promise<boolean> => {
+    if (!registrationEnabled || !cmsEnabled) {
+      return false;
+    }
+
+    const result = await registerWithApi(email, password, name, csrfToken);
+    setCsrfToken(result.csrfToken);
+    setUser(result.user);
+    return !!result.user;
+  };
+
+  const logout = async () => {
+    await logoutWithApi(csrfToken);
     setUser(null);
-    localStorage.removeItem('smove_user');
+    setCsrfToken(null);
   };
 
   return (
@@ -115,7 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
-        isAuthenticated: !!user,
+        isAuthenticated,
+        isAuthReady,
+        cmsEnabled,
+        registrationEnabled,
+        canAccessCMS,
       }}
     >
       {children}

@@ -26,7 +26,7 @@ interface CMSDashboardProps {
 }
 
 export default function CMSDashboard({ currentSection, onSectionChange }: CMSDashboardProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, canAccessCMS } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const stats = [
@@ -75,10 +75,31 @@ export default function CMSDashboard({ currentSection, onSectionChange }: CMSDas
     { action: 'Projet modifié', item: 'ECLA BTP', time: 'Il y a 2j', type: 'project' },
   ];
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     window.location.hash = 'login';
   };
+
+  if (!canAccessCMS) {
+    return (
+      <div className="min-h-screen bg-[#f5f9fa] flex items-center justify-center px-6">
+        <div className="max-w-xl w-full bg-white rounded-[20px] shadow-sm border border-[#eef3f5] p-8 text-center">
+          <h1 className="font-['Medula_One:Regular',sans-serif] text-[32px] tracking-[2px] uppercase text-[#273a41] mb-4">
+            Accès refusé
+          </h1>
+          <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[16px] text-[#38484e] mb-6">
+            Seuls les comptes administrateurs peuvent accéder au CMS.
+          </p>
+          <a
+            href="#home"
+            className="inline-flex items-center justify-center bg-[#00b3e8] text-white px-6 py-3 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif]"
+          >
+            Retour au site
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f9fa] flex">
@@ -124,7 +145,7 @@ export default function CMSDashboard({ currentSection, onSectionChange }: CMSDas
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-r from-[#00b3e8] to-[#34c759] rounded-full flex items-center justify-center">
               <span className="text-white font-['Abhaya_Libre:Bold',sans-serif] text-[16px]">
-                {user?.name.charAt(0)}
+                {user?.name?.charAt(0) ?? 'A'}
               </span>
             </div>
             {sidebarOpen && (

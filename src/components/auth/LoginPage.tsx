@@ -8,12 +8,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, registrationEnabled, cmsEnabled } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    if (!cmsEnabled) {
+      setError('Le CMS est actuellement désactivé dans cet environnement.');
+      setLoading(false);
+      return;
+    }
 
     if (!email || !password) {
       setError('Veuillez remplir tous les champs');
@@ -160,8 +166,13 @@ export default function LoginPage() {
               Accès CMS interne
             </p>
             <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[12px] text-[#273a41]">
-              Utilisez vos identifiants administrateur pour accéder au tableau de bord.
+              Utilisez un compte administrateur autorisé pour accéder au tableau de bord.
             </p>
+            {!cmsEnabled && (
+              <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[12px] text-red-600 mt-2">
+                CMS non disponible en production sans backend d'authentification sécurisé.
+              </p>
+            )}
           </motion.div>
 
           {/* Error Message */}
@@ -197,7 +208,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-[12px] border-2 border-[#eef3f5] focus:border-[#00b3e8] outline-none transition-colors font-['Abhaya_Libre:Regular',sans-serif] text-[16px]"
                   placeholder="votre@email.com"
-                  disabled={loading}
+                  disabled={loading || !cmsEnabled}
                 />
               </div>
             </motion.div>
@@ -219,7 +230,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-[12px] border-2 border-[#eef3f5] focus:border-[#00b3e8] outline-none transition-colors font-['Abhaya_Libre:Regular',sans-serif] text-[16px]"
                   placeholder="••••••••"
-                  disabled={loading}
+                  disabled={loading || !cmsEnabled}
                 />
               </div>
             </motion.div>
@@ -233,7 +244,7 @@ export default function LoginPage() {
               transition={{ delay: 0.7 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              disabled={loading}
+              disabled={loading || !cmsEnabled}
             >
               {loading ? (
                 <motion.div
@@ -257,15 +268,17 @@ export default function LoginPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-[#9ba1a4]">
-              Pas encore de compte?{' '}
-              <a
-                href="#register"
-                className="text-[#00b3e8] font-['Abhaya_Libre:Bold',sans-serif] hover:underline"
-              >
-                S'inscrire
-              </a>
-            </p>
+            {registrationEnabled && (
+              <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-[#9ba1a4]">
+                Pas encore de compte?{' '}
+                <a
+                  href="#register"
+                  className="text-[#00b3e8] font-['Abhaya_Libre:Bold',sans-serif] hover:underline"
+                >
+                  S'inscrire
+                </a>
+              </p>
+            )}
             <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-[#9ba1a4]">
               <a
                 href="#home"

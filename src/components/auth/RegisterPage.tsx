@@ -10,12 +10,25 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, registrationEnabled, cmsEnabled } = useAuth();
+  const isFormDisabled = loading || !registrationEnabled || !cmsEnabled;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    if (!cmsEnabled) {
+      setError('Le CMS est actuellement désactivé dans cet environnement.');
+      setLoading(false);
+      return;
+    }
+
+    if (!registrationEnabled) {
+      setError('L’inscription publique est désactivée. Contactez un administrateur.');
+      setLoading(false);
+      return;
+    }
 
     if (!name || !email || !password || !confirmPassword) {
       setError('Veuillez remplir tous les champs');
@@ -159,9 +172,24 @@ export default function RegisterPage() {
               Inscription
             </h1>
             <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[16px] text-[#9ba1a4]">
-              Créez votre compte administrateur
+              Demandez un accès au CMS
             </p>
           </motion.div>
+
+          {(!registrationEnabled || !cmsEnabled) && (
+            <motion.div
+              className="bg-amber-50 border border-amber-200 rounded-[12px] p-4 mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <p className="font-['Abhaya_Libre:Bold',sans-serif] text-[14px] text-amber-700 mb-1">
+                Inscription indisponible
+              </p>
+              <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[12px] text-amber-700">
+                L’inscription publique est désactivée par défaut pour protéger l’accès CMS.
+              </p>
+            </motion.div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -196,7 +224,7 @@ export default function RegisterPage() {
                   onChange={(e) => setName(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-[12px] border-2 border-[#eef3f5] focus:border-[#34c759] outline-none transition-colors font-['Abhaya_Libre:Regular',sans-serif] text-[16px]"
                   placeholder="Votre nom"
-                  disabled={loading}
+                  disabled={isFormDisabled}
                 />
               </div>
             </motion.div>
@@ -218,7 +246,7 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-[12px] border-2 border-[#eef3f5] focus:border-[#34c759] outline-none transition-colors font-['Abhaya_Libre:Regular',sans-serif] text-[16px]"
                   placeholder="votre@email.com"
-                  disabled={loading}
+                  disabled={isFormDisabled}
                 />
               </div>
             </motion.div>
@@ -240,7 +268,7 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-[12px] border-2 border-[#eef3f5] focus:border-[#34c759] outline-none transition-colors font-['Abhaya_Libre:Regular',sans-serif] text-[16px]"
                   placeholder="••••••••"
-                  disabled={loading}
+                  disabled={isFormDisabled}
                 />
               </div>
               <p className="mt-1 font-['Abhaya_Libre:Regular',sans-serif] text-[12px] text-[#9ba1a4]">
@@ -265,7 +293,7 @@ export default function RegisterPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-[12px] border-2 border-[#eef3f5] focus:border-[#34c759] outline-none transition-colors font-['Abhaya_Libre:Regular',sans-serif] text-[16px]"
                   placeholder="••••••••"
-                  disabled={loading}
+                  disabled={isFormDisabled}
                 />
                 {confirmPassword && password === confirmPassword && (
                   <Check className="absolute right-4 top-1/2 -translate-y-1/2 text-[#34c759]" size={20} />
@@ -282,7 +310,7 @@ export default function RegisterPage() {
               transition={{ delay: 0.8 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              disabled={loading}
+              disabled={isFormDisabled}
             >
               {loading ? (
                 <motion.div
