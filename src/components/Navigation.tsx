@@ -1,5 +1,6 @@
 import { Home, Info, Briefcase, FolderOpen, BookOpen, Mail, LayoutDashboard, LogIn, UserPlus } from 'lucide-react';
 import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import imgTelegramCloudDocument from "figma:asset/9152e642280f0d22dbf10b789d9b260fdd8949da.png";
 import { motion } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,44 +9,44 @@ interface NavigationProps {
   currentPath?: string;
 }
 
-export default function Navigation({ currentPath = '/' }: NavigationProps) {
+export default function Navigation({ currentPath }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
-  const currentHash = window.location.hash.slice(1) || 'home';
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activePath = currentPath ?? location.pathname;
+  const currentHash = location.hash.slice(1);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string, sectionId?: string) => {
     e.preventDefault();
 
-    const hash = window.location.hash.slice(1);
-    const isHomeContext = hash === '' || hash === 'home' || ['services', 'about', 'portfolio', 'contact'].includes(hash);
-
     if (sectionId) {
-      if (isHomeContext) {
+      if (location.pathname === '/') {
         const section = document.getElementById(sectionId);
         if (section) {
           section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          window.history.replaceState(null, '', `#${sectionId}`);
+          navigate({ pathname: '/', hash: `#${sectionId}` }, { replace: true });
           setIsMobileMenuOpen(false);
           return;
         }
       }
 
-      window.location.hash = sectionId;
+      navigate({ pathname: '/', hash: `#${sectionId}` });
       setIsMobileMenuOpen(false);
       return;
     }
 
-    window.location.hash = path;
+    navigate(path);
     setIsMobileMenuOpen(false);
   };
 
   const navItems = [
-    { name: 'Accueil', path: 'home', icon: Home },
-    { name: 'Services', path: 'home', sectionId: 'services', icon: Briefcase },
-    { name: 'À Propos', path: 'home', sectionId: 'about', icon: Info },
-    { name: 'Portfolio', path: 'home', sectionId: 'portfolio', icon: FolderOpen },
-    { name: 'Blog', path: 'blog', icon: BookOpen },
-    { name: 'Contact', path: 'home', sectionId: 'contact', icon: Mail },
+    { name: 'Accueil', path: '/', icon: Home },
+    { name: 'Services', path: '/', sectionId: 'services', icon: Briefcase },
+    { name: 'À Propos', path: '/', sectionId: 'about', icon: Info },
+    { name: 'Portfolio', path: '/', sectionId: 'portfolio', icon: FolderOpen },
+    { name: 'Blog', path: '/blog', icon: BookOpen },
+    { name: 'Contact', path: '/', sectionId: 'contact', icon: Mail },
   ];
 
   return (
@@ -58,51 +59,51 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <a href="#home" className="flex items-center" onClick={(e) => handleNavClick(e, 'home')}>
+          <Link to="/" className="flex items-center">
             <img 
               src={imgTelegramCloudDocument} 
               alt="SMOVE Communication" 
               className="h-12 w-auto rounded-full"
             />
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <a
-              href="#home"
-              onClick={(e) => handleNavClick(e, 'home')}
+              href="/"
+              onClick={(e) => handleNavClick(e, '/')}
               className={`font-['Abhaya_Libre:Regular',sans-serif] text-[16px] transition-colors ${
-                currentPath === '/' ? 'text-[#00b3e8]' : 'text-[#273a41] hover:text-[#00b3e8]'
+                activePath === '/' ? 'text-[#00b3e8]' : 'text-[#273a41] hover:text-[#00b3e8]'
               }`}
             >
               Accueil
             </a>
             <a
-              href="#services"
-              onClick={(e) => handleNavClick(e, 'home', 'services')}
+              href="/#services"
+              onClick={(e) => handleNavClick(e, '/', 'services')}
               className="font-['Abhaya_Libre:Regular',sans-serif] text-[16px] text-[#273a41] hover:text-[#00b3e8] transition-colors"
             >
               Services
             </a>
             <a
-              href="#about"
-              onClick={(e) => handleNavClick(e, 'home', 'about')}
+              href="/#about"
+              onClick={(e) => handleNavClick(e, '/', 'about')}
               className="font-['Abhaya_Libre:Regular',sans-serif] text-[16px] text-[#273a41] hover:text-[#00b3e8] transition-colors"
             >
               À Propos
             </a>
             <a
-              href="#portfolio"
-              onClick={(e) => handleNavClick(e, 'home', 'portfolio')}
+              href="/#portfolio"
+              onClick={(e) => handleNavClick(e, '/', 'portfolio')}
               className="font-['Abhaya_Libre:Regular',sans-serif] text-[16px] text-[#273a41] hover:text-[#00b3e8] transition-colors"
             >
               Portfolio
             </a>
             <a
-              href="#blog"
-              onClick={(e) => handleNavClick(e, 'blog')}
+              href="/blog"
+              onClick={(e) => handleNavClick(e, '/blog')}
               className={`font-['Abhaya_Libre:Regular',sans-serif] text-[16px] transition-colors ${
-                currentPath === '/blog' ? 'text-[#00b3e8]' : 'text-[#273a41] hover:text-[#00b3e8]'
+                activePath === '/blog' ? 'text-[#00b3e8]' : 'text-[#273a41] hover:text-[#00b3e8]'
               }`}
             >
               Blog
@@ -112,19 +113,21 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             {!isAuthenticated ? (
               <>
                 <motion.a
-                  href="#login"
+                  href="/login"
                   className="flex items-center gap-2 text-[#00b3e8] px-4 py-2 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] hover:bg-[#00b3e8]/10 transition-colors border-2 border-[#00b3e8]"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={(e) => handleNavClick(e, '/login')}
                 >
                   <LogIn size={18} />
                   Se connecter
                 </motion.a>
                 <motion.a
-                  href="#register"
+                  href="/register"
                   className="flex items-center gap-2 bg-gradient-to-r from-[#00b3e8] to-[#00c0e8] text-white px-4 py-2 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] hover:shadow-lg transition-shadow"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={(e) => handleNavClick(e, '/register')}
                 >
                   <UserPlus size={18} />
                   S'inscrire
@@ -146,10 +149,11 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
                 </div>
 
                 <motion.a
-                  href="#cms-dashboard"
+                  href="/cms-dashboard"
                   className="flex items-center gap-2 bg-gradient-to-r from-[#a855f7] to-[#9333ea] text-white px-5 py-3 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] hover:shadow-lg transition-shadow"
                   whileHover={{ scale: 1.05, boxShadow: '0 10px 30px rgba(168, 85, 247, 0.3)' }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={(e) => handleNavClick(e, '/cms-dashboard')}
                 >
                   <LayoutDashboard size={20} />
                   Dashboard
@@ -158,8 +162,8 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             )}
 
             <a
-              href="#contact"
-              onClick={(e) => handleNavClick(e, 'home', 'contact')}
+              href="/#contact"
+              onClick={(e) => handleNavClick(e, '/', 'contact')}
               className="bg-[#34c759] text-white px-6 py-3 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] hover:bg-[#2da84a] transition-colors"
             >
               Contact
@@ -197,12 +201,18 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             {navItems.map((item) => {
               const Icon = item.icon;
               const targetHash = item.sectionId ?? item.path;
+              const isItemActive = item.sectionId
+                ? activePath === '/' && currentHash === item.sectionId
+                : activePath === item.path;
+
               return (
                 <a
                   key={`${item.path}-${item.sectionId ?? 'page'}`}
-                  href={`#${targetHash}`}
+                  href={item.sectionId ? `/#${item.sectionId}` : item.path}
                   className={`flex items-center gap-3 text-white py-2 px-3 rounded-lg hover:bg-white/10 transition-colors ${
-                    currentHash === targetHash ? 'bg-white/20 font-bold' : ''
+                    isItemActive || targetHash === '/' && activePath === '/' && !currentHash
+                      ? 'bg-white/20 font-bold'
+                      : ''
                   }`}
                   onClick={(e) => handleNavClick(e, item.path, item.sectionId)}
                 >
@@ -216,17 +226,17 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             {!isAuthenticated ? (
               <>
                 <a
-                  href="#login"
+                  href="/login"
                   className="flex items-center gap-3 text-white py-3 px-3 rounded-lg bg-white/10 border-2 border-white/30 font-['Abhaya_Libre:Bold',sans-serif]"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(e) => handleNavClick(e, '/login')}
                 >
                   <LogIn size={20} />
                   <span>Se connecter</span>
                 </a>
                 <a
-                  href="#register"
+                  href="/register"
                   className="flex items-center gap-3 text-white py-3 px-3 rounded-lg bg-white/20 border-2 border-white/30 font-['Abhaya_Libre:Bold',sans-serif]"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(e) => handleNavClick(e, '/register')}
                 >
                   <UserPlus size={20} />
                   <span>S'inscrire</span>
@@ -234,9 +244,9 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
               </>
             ) : (
               <a
-                href="#cms-dashboard"
+                href="/cms-dashboard"
                 className="flex items-center gap-3 text-white py-3 px-3 rounded-lg bg-[#a855f7] border-2 border-[#a855f7] font-['Abhaya_Libre:Bold',sans-serif]"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => handleNavClick(e, '/cms-dashboard')}
               >
                 <LayoutDashboard size={20} />
                 <span>Dashboard</span>
@@ -244,9 +254,9 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             )}
 
             <a
-              href="#contact"
+              href="/#contact"
               className="block bg-[#34c759] text-white text-center py-3 rounded-[15px] font-['Abhaya_Libre:Bold',sans-serif] mt-4"
-              onClick={(e) => handleNavClick(e, 'home', 'contact')}
+              onClick={(e) => handleNavClick(e, '/', 'contact')}
             >
               Contact
             </a>

@@ -37,11 +37,11 @@ export default function Footer() {
               Services
             </h3>
             <ul className="space-y-3 font-['Abhaya_Libre:Regular',sans-serif] text-[14px]">
-              <li><a href="#services" className="hover:text-[#00b3e8] transition-colors">Design & Branding</a></li>
-              <li><a href="#services" className="hover:text-[#00b3e8] transition-colors">Développement Web</a></li>
-              <li><a href="#services" className="hover:text-[#00b3e8] transition-colors">Communication Digitale</a></li>
-              <li><a href="#services" className="hover:text-[#00b3e8] transition-colors">Production Vidéo</a></li>
-              <li><a href="#services" className="hover:text-[#00b3e8] transition-colors">Création 3D</a></li>
+              <li><a href="/#services" className="hover:text-[#00b3e8] transition-colors">Design & Branding</a></li>
+              <li><a href="/#services" className="hover:text-[#00b3e8] transition-colors">Développement Web</a></li>
+              <li><a href="/#services" className="hover:text-[#00b3e8] transition-colors">Communication Digitale</a></li>
+              <li><a href="/#services" className="hover:text-[#00b3e8] transition-colors">Production Vidéo</a></li>
+              <li><a href="/#services" className="hover:text-[#00b3e8] transition-colors">Création 3D</a></li>
             </ul>
           </div>
 
@@ -51,11 +51,11 @@ export default function Footer() {
               Liens Rapides
             </h3>
             <ul className="space-y-3 font-['Abhaya_Libre:Regular',sans-serif] text-[14px]">
-              <li><a href="#home" className="hover:text-[#00b3e8] transition-colors">Accueil</a></li>
-              <li><a href="#apropos" className="hover:text-[#00b3e8] transition-colors">À Propos</a></li>
-              <li><a href="#portfolio" className="hover:text-[#00b3e8] transition-colors">Portfolio</a></li>
-              <li><a href="#blog" className="hover:text-[#00b3e8] transition-colors">Blog</a></li>
-              <li><a href="#contact" className="hover:text-[#00b3e8] transition-colors">Contact</a></li>
+              <li><a href="/" className="hover:text-[#00b3e8] transition-colors">Accueil</a></li>
+              <li><a href="/apropos" className="hover:text-[#00b3e8] transition-colors">À Propos</a></li>
+              <li><a href="/portfolio" className="hover:text-[#00b3e8] transition-colors">Portfolio</a></li>
+              <li><a href="/blog" className="hover:text-[#00b3e8] transition-colors">Blog</a></li>
+              <li><a href="/#contact" className="hover:text-[#00b3e8] transition-colors">Contact</a></li>
             </ul>
           </div>
 

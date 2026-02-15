@@ -1,22 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { AuthProvider } from './contexts/AuthContext';
-import { useAuth } from './contexts/AuthContext';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import Hero3DEnhanced from './components/Hero3DEnhanced';
 import Footer from './components/Footer';
-import PortfolioPage from './components/PortfolioPage';
-import BlogPageEnhanced from './components/BlogPageEnhanced';
-import ServicesHubPage from './components/ServicesHubPage';
-import DesignBrandingPage from './components/services/DesignBrandingPage';
-import WebDevelopmentPage from './components/services/WebDevelopmentPage';
-import ProjectsPage from './components/ProjectsPage';
-import ProjectDetailPage from './components/ProjectDetailPage';
 import ProjectsSection from './components/ProjectsSection';
-import LoginPage from './components/auth/LoginPage';
-import RegisterPage from './components/auth/RegisterPage';
-import CMSDashboard from './components/cms/CMSDashboard';
-import APropos from './imports/APropos';
 import { Palette, Code, Megaphone, Video, Box, ArrowRight, Calendar, User } from 'lucide-react';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 
@@ -84,6 +73,19 @@ const blogPosts = [
     image: 'logo design creative',
   },
 ];
+
+const APropos = lazy(() => import('./imports/APropos'));
+const BlogPageEnhanced = lazy(() => import('./components/BlogPageEnhanced'));
+const CMSDashboard = lazy(() => import('./components/cms/CMSDashboard'));
+const ContactPage = lazy(() => import('./components/ContactPage'));
+const DesignBrandingPage = lazy(() => import('./components/services/DesignBrandingPage'));
+const LoginPage = lazy(() => import('./components/auth/LoginPage'));
+const PortfolioPage = lazy(() => import('./components/PortfolioPage'));
+const ProjectDetailPage = lazy(() => import('./components/ProjectDetailPage'));
+const ProjectsPage = lazy(() => import('./components/ProjectsPage'));
+const RegisterPage = lazy(() => import('./components/auth/RegisterPage'));
+const ServicesHubPage = lazy(() => import('./components/ServicesHubPage'));
+const WebDevelopmentPage = lazy(() => import('./components/services/WebDevelopmentPage'));
 
 function HomePageContent() {
   return (
@@ -187,7 +189,7 @@ function HomePageContent() {
             transition={{ delay: 0.5 }}
           >
             <motion.a
-              href="#services-all"
+              href="/services"
               className="inline-block bg-gradient-to-r from-[#00b3e8] to-[#00c0e8] text-white px-10 py-5 rounded-[20px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px]"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -347,7 +349,7 @@ function HomePageContent() {
             viewport={{ once: true }}
           >
             <motion.a
-              href="#projects"
+              href="/projects"
               className="inline-block bg-gradient-to-r from-[#ffc247] to-[#ff9f47] text-white px-10 py-5 rounded-[20px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px]"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -452,7 +454,7 @@ function HomePageContent() {
             viewport={{ once: true }}
           >
             <motion.a
-              href="#blog"
+              href="/blog"
               className="inline-block bg-gradient-to-r from-[#a855f7] to-[#9333ea] text-white px-10 py-5 rounded-[20px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px]"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -582,125 +584,194 @@ function HomePageContent() {
 
 const HOME_SECTIONS = new Set(['services', 'about', 'portfolio', 'contact']);
 
-function AppContent() {
-  const { isAuthenticated } = useAuth();
-  const [currentPage, setCurrentPage] = useState('home');
-  const [cmsSection, setCmsSection] = useState('overview');
-  const pendingSectionScroll = useRef<string | null>(null);
+function RouteLoader() {
+  return (
+    <div className="min-h-screen bg-[#f5f9fa] flex items-center justify-center">
+      <div className="w-10 h-10 border-4 border-[#00b3e8] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+function ScrollManager() {
+  const location = useLocation();
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1) || 'home';
+    if (location.hash) {
+      return;
+    }
+    window.scrollTo(0, 0);
+  }, [location.pathname, location.hash]);
 
-      if ((hash === 'cms-dashboard' || hash.startsWith('cms-')) && !isAuthenticated) {
-        setCurrentPage('login');
-        if (window.location.hash !== '#login') {
-          window.location.hash = 'login';
-        }
-        return;
-      }
+  return null;
+}
 
-      if (HOME_SECTIONS.has(hash)) {
-        pendingSectionScroll.current = hash;
-        setCurrentPage('home');
-        return;
-      }
-
-      setCurrentPage(hash);
-    };
-
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [isAuthenticated]);
+function HomeRoute() {
+  const location = useLocation();
 
   useEffect(() => {
-    if (pendingSectionScroll.current) {
-      const sectionId = pendingSectionScroll.current;
-      pendingSectionScroll.current = null;
-
-      requestAnimationFrame(() => {
-        const section = document.getElementById(sectionId);
-        if (section) {
-          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
+    if (location.pathname !== '/' || !location.hash) {
       return;
     }
 
-    window.scrollTo(0, 0);
-  }, [currentPage]);
-
-  const renderPage = () => {
-    // Auth pages
-    if (currentPage === 'login') {
-      return <LoginPage />;
-    }
-    if (currentPage === 'register') {
-      return <RegisterPage />;
+    const sectionId = location.hash.replace('#', '');
+    if (!HOME_SECTIONS.has(sectionId)) {
+      return;
     }
 
-    // CMS pages
-    if (currentPage === 'cms-dashboard' || currentPage.startsWith('cms-')) {
-      if (!isAuthenticated) {
-        return <LoginPage />;
+    requestAnimationFrame(() => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-      return <CMSDashboard currentSection={cmsSection} onSectionChange={setCmsSection} />;
-    }
+    });
+  }, [location.hash, location.pathname]);
 
-    // Check if it's a project detail page
-    if (currentPage.startsWith('project-')) {
-      const projectId = currentPage.replace('project-', '');
-      return <ProjectDetailPage projectId={projectId} />;
-    }
+  return (
+    <>
+      <Navigation currentPath="/" />
+      <HomePageContent />
+    </>
+  );
+}
 
-    switch (currentPage) {
-      case 'home':
-        return (
-          <>
-            <Navigation currentPath="/" />
-            <HomePageContent />
-          </>
-        );
-      case 'projects':
-        return <ProjectsPage />;
-      case 'services-all':
-        return <ServicesHubPage />;
-      case 'service-design':
-        return <DesignBrandingPage />;
-      case 'service-web':
-        return <WebDevelopmentPage />;
-      case 'portfolio':
-        return <PortfolioPage />;
-      case 'blog':
-        return <BlogPageEnhanced />;
-      case 'apropos':
-        return (
-          <>
-            <Navigation currentPath="/apropos" />
-            <div className="pt-20">
-              <APropos />
-            </div>
-            <Footer />
-          </>
-        );
-      default:
-        return (
-          <>
-            <Navigation currentPath="/" />
-            <HomePageContent />
-          </>
-        );
-    }
-  };
+function AboutRoute() {
+  return (
+    <>
+      <Navigation currentPath="/apropos" />
+      <div className="pt-20">
+        <Suspense fallback={<RouteLoader />}>
+          <APropos />
+        </Suspense>
+      </div>
+      <Footer />
+    </>
+  );
+}
+
+function ProjectDetailRoute() {
+  const { projectId = '' } = useParams();
+
+  return (
+    <Suspense fallback={<RouteLoader />}>
+      <ProjectDetailPage projectId={projectId} />
+    </Suspense>
+  );
+}
+
+function CMSDashboardRoute() {
+  const { isAuthenticated } = useAuth();
+  const [cmsSection, setCmsSection] = useState('overview');
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <Suspense fallback={<RouteLoader />}>
+      <CMSDashboard currentSection={cmsSection} onSectionChange={setCmsSection} />
+    </Suspense>
+  );
+}
+
+function AppRouter() {
+  const location = useLocation();
+  const hideScrollButton = ['/login', '/register', '/cms-dashboard'].includes(location.pathname);
 
   return (
     <div className="min-h-screen">
-      {renderPage()}
-      
-      {/* Scroll to Top Button - hide on auth/cms pages */}
-      {!['login', 'register'].includes(currentPage) && !currentPage.startsWith('cms-') && (
+      <ScrollManager />
+
+      <Routes>
+        <Route path="/" element={<HomeRoute />} />
+        <Route path="/apropos" element={<AboutRoute />} />
+
+        <Route
+          path="/projects"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <ProjectsPage />
+            </Suspense>
+          }
+        />
+        <Route path="/projects/:projectId" element={<ProjectDetailRoute />} />
+
+        <Route
+          path="/services"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <ServicesHubPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/services/design-branding"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <DesignBrandingPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/services/web-development"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <WebDevelopmentPage />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/portfolio"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <PortfolioPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/blog"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <BlogPageEnhanced />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <ContactPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <LoginPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <Suspense fallback={<RouteLoader />}>
+              <RegisterPage />
+            </Suspense>
+          }
+        />
+        <Route path="/cms-dashboard" element={<CMSDashboardRoute />} />
+
+        {/* Legacy route redirects */}
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        <Route path="/services-all" element={<Navigate to="/services" replace />} />
+        <Route path="/service-design" element={<Navigate to="/services/design-branding" replace />} />
+        <Route path="/service-web" element={<Navigate to="/services/web-development" replace />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      {!hideScrollButton && (
         <motion.button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-8 right-8 bg-[#00b3e8] text-white p-4 rounded-full shadow-lg z-50"
@@ -729,7 +800,7 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <AppRouter />
     </AuthProvider>
   );
 }

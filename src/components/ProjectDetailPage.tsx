@@ -17,7 +17,7 @@ export default function ProjectDetailPage({ projectId }: ProjectDetailPageProps)
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-[48px] text-[#273a41] mb-4">Projet non trouvé</h1>
-          <a href="#projects" className="text-[#00b3e8] underline">
+          <a href="/projects" className="text-[#00b3e8] underline">
             Retour aux projets
           </a>
         </div>
@@ -48,7 +48,7 @@ export default function ProjectDetailPage({ projectId }: ProjectDetailPageProps)
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Back Button */}
           <motion.a
-            href="#projects"
+            href="/projects"
             className="inline-flex items-center gap-2 text-[#00b3e8] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] mb-8"
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -133,7 +133,7 @@ export default function ProjectDetailPage({ projectId }: ProjectDetailPageProps)
 
               {/* CTA */}
               <motion.a
-                href="#contact"
+                href="/#contact"
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-[#ffc247] to-[#ff9f47] text-white px-8 py-4 rounded-[15px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px]"
                 whileHover={{ scale: 1.05, x: 5 }}
                 whileTap={{ scale: 0.95 }}
@@ -339,7 +339,7 @@ export default function ProjectDetailPage({ projectId }: ProjectDetailPageProps)
             Découvrez nos autres projets
           </motion.h2>
           <motion.a
-            href="#projects"
+            href="/projects"
             className="inline-block bg-gradient-to-r from-[#00b3e8] to-[#00c0e8] text-white px-10 py-5 rounded-[15px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px]"
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}

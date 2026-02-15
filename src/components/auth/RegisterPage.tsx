@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Mail, Lock, User, UserPlus, AlertCircle, Sparkles, Check } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function RegisterPage() {
@@ -11,6 +12,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +40,7 @@ export default function RegisterPage() {
     const success = await register(email, password, name);
     
     if (success) {
-      window.location.hash = 'cms-dashboard';
+      navigate('/cms-dashboard');
     } else {
       setError('Cet email est déjà utilisé');
     }
@@ -308,20 +310,20 @@ export default function RegisterPage() {
           >
             <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-[#9ba1a4]">
               Déjà un compte?{' '}
-              <a
-                href="#login"
+              <Link
+                to="/login"
                 className="text-[#34c759] font-['Abhaya_Libre:Bold',sans-serif] hover:underline"
               >
                 Se connecter
-              </a>
+              </Link>
             </p>
             <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-[#9ba1a4]">
-              <a
-                href="#home"
+              <Link
+                to="/"
                 className="text-[#9ba1a4] hover:text-[#273a41] transition-colors"
               >
                 ← Retour au site
-              </a>
+              </Link>
             </p>
           </motion.div>
         </div>

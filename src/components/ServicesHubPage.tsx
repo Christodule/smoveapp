@@ -6,6 +6,7 @@ import Footer from './Footer';
 const services = [
   {
     id: 'design-branding',
+    path: '/services/design-branding',
     icon: Palette,
     title: 'Design & Branding',
     description: 'Création d\'interfaces immersives, animations 3D et expériences interactives, de logo et d\'identité visuels.',
@@ -14,6 +15,7 @@ const services = [
   },
   {
     id: 'web-development',
+    path: '/services/web-development',
     icon: Code,
     title: 'Développement Web & Mobile',
     description: 'Applications web modernes, rapides et sécurisées, adaptées à vos besoins métiers.',
@@ -146,7 +148,7 @@ export default function ServicesHubPage() {
             {services.map((service, index) => (
               <motion.a
                 key={service.id}
-                href={`#service-${service.id}`}
+                href={service.path ?? '/#services'}
                 className="group block"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -323,7 +325,7 @@ export default function ServicesHubPage() {
             Contactez-nous dès aujourd'hui pour discuter de vos besoins et obtenir un devis gratuit.
           </motion.p>
           <motion.a
-            href="#contact"
+            href="/#contact"
             className="inline-block bg-[#34c759] text-white px-12 py-5 rounded-[15px] font-['Abhaya_Libre:Bold',sans-serif] text-[20px]"
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}

@@ -175,7 +175,7 @@ export default function PortfolioPage() {
             Vous souhaitez faire partie de l'aventure SMOVE ? Nous sommes toujours à la recherche de talents passionnés.
           </p>
           <a
-            href="#contact"
+            href="/#contact"
             className="inline-block bg-[#34c759] text-white px-8 py-4 rounded-[15px] font-['Abhaya_Libre:Bold',sans-serif] text-[18px] hover:bg-[#2da84a] transition-colors"
           >
             Postuler maintenant

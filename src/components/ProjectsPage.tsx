@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Filter, Search, ArrowRight, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import { projects, projectCategories } from '../data/projects';
@@ -9,6 +10,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 export default function ProjectsPage() {
   const [selectedCategory, setSelectedCategory] = useState('Tous');
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const filteredProjects = projects.filter((project) => {
     const matchesCategory = selectedCategory === 'Tous' || project.category === selectedCategory;
@@ -191,7 +193,7 @@ export default function ProjectsPage() {
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ delay: index * 0.1, duration: 0.6 }}
                   onClick={() => {
-                    window.location.hash = `project-${project.id}`;
+                    navigate(`/projects/${project.id}`);
                   }}
                 >
                   <motion.div
@@ -351,7 +353,7 @@ export default function ProjectsPage() {
             Prêt à créer quelque chose d'exceptionnel ensemble ?
           </motion.p>
           <motion.a
-            href="#contact"
+            href="/#contact"
             className="inline-block bg-white text-[#ffc247] px-12 py-5 rounded-[15px] font-['Abhaya_Libre:Bold',sans-serif] text-[20px]"
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}

@@ -15,6 +15,7 @@ import {
   Plus
 } from 'lucide-react';
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { projects } from '../../data/projects';
 import { getBlogPosts } from '../../data/blog';
@@ -28,6 +29,7 @@ interface CMSDashboardProps {
 export default function CMSDashboard({ currentSection, onSectionChange }: CMSDashboardProps) {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
 
   const stats = [
     {
@@ -77,7 +79,7 @@ export default function CMSDashboard({ currentSection, onSectionChange }: CMSDas
 
   const handleLogout = () => {
     logout();
-    window.location.hash = 'login';
+    navigate('/login');
   };
 
   return (
@@ -200,12 +202,12 @@ export default function CMSDashboard({ currentSection, onSectionChange }: CMSDas
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <a
-                href="#home"
+              <Link
+                to="/"
                 className="font-['Abhaya_Libre:Regular',sans-serif] text-[14px] text-[#9ba1a4] hover:text-[#273a41]"
               >
                 Voir le site →
-              </a>
+              </Link>
             </div>
           </div>
         </header>

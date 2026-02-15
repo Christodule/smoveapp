@@ -1,10 +1,12 @@
 import { motion } from 'motion/react';
 import { ArrowRight, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { getFeaturedProjects } from '../data/projects';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 export default function ProjectsSection() {
   const featuredProjects = getFeaturedProjects(6);
+  const navigate = useNavigate();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -17,7 +19,7 @@ export default function ProjectsSection() {
           viewport={{ once: true }}
           transition={{ delay: index * 0.1, duration: 0.6 }}
           onClick={() => {
-            window.location.hash = `project-${project.id}`;
+            navigate(`/projects/${project.id}`);
           }}
         >
           <motion.div
