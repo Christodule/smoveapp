@@ -399,9 +399,9 @@ const results = searchMediaFiles('hero');
 ### LocalStorage Structure
 
 ```javascript
-// Users
-smove_users: [{ id, email, password, name, role }]
-smove_user: { id, email, name, role }
+// Auth
+// Aucun identifiant ni session auth stocké côté client.
+// Session récupérée depuis /api/auth/session (backend).
 
 // Content
 smove_blog_posts: [{ ...post }]

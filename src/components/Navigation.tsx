@@ -10,8 +10,10 @@ interface NavigationProps {
 
 export default function Navigation({ currentPath = '/' }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, registrationEnabled, cmsEnabled, canAccessCMS } = useAuth();
   const currentHash = window.location.hash.slice(1) || 'home';
+  const showAuthActions = cmsEnabled && !isAuthenticated;
+  const showDashboardAction = cmsEnabled && canAccessCMS;
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string, sectionId?: string) => {
     e.preventDefault();
@@ -108,8 +110,8 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
               Blog
             </a>
 
-            {/* Auth Buttons - Shown when NOT logged in */}
-            {!isAuthenticated ? (
+            {/* Auth / CMS actions */}
+            {showAuthActions ? (
               <>
                 <motion.a
                   href="#login"
@@ -120,42 +122,45 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
                   <LogIn size={18} />
                   Se connecter
                 </motion.a>
-                <motion.a
-                  href="#register"
-                  className="flex items-center gap-2 bg-gradient-to-r from-[#00b3e8] to-[#00c0e8] text-white px-4 py-2 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] hover:shadow-lg transition-shadow"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <UserPlus size={18} />
-                  S'inscrire
-                </motion.a>
+                {registrationEnabled && (
+                  <motion.a
+                    href="#register"
+                    className="flex items-center gap-2 bg-gradient-to-r from-[#00b3e8] to-[#00c0e8] text-white px-4 py-2 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] hover:shadow-lg transition-shadow"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <UserPlus size={18} />
+                    S'inscrire
+                  </motion.a>
+                )}
               </>
-            ) : (
-              /* Dashboard Button - Shown when logged in */
+            ) : isAuthenticated ? (
               <>
                 {/* User Avatar */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-[#f5f9fa] rounded-[12px]">
                   <div className="w-8 h-8 bg-gradient-to-r from-[#00b3e8] to-[#34c759] rounded-full flex items-center justify-center">
                     <span className="text-white font-['Abhaya_Libre:Bold',sans-serif] text-[14px]">
-                      {user?.name.charAt(0).toUpperCase()}
+                      {user?.name?.charAt(0)?.toUpperCase() ?? 'U'}
                     </span>
                   </div>
                   <span className="font-['Abhaya_Libre:Bold',sans-serif] text-[14px] text-[#273a41]">
-                    {user?.name.split(' ')[0]}
+                    {user?.name?.split(' ')[0] ?? 'Utilisateur'}
                   </span>
                 </div>
 
-                <motion.a
-                  href="#cms-dashboard"
-                  className="flex items-center gap-2 bg-gradient-to-r from-[#a855f7] to-[#9333ea] text-white px-5 py-3 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] hover:shadow-lg transition-shadow"
-                  whileHover={{ scale: 1.05, boxShadow: '0 10px 30px rgba(168, 85, 247, 0.3)' }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <LayoutDashboard size={20} />
-                  Dashboard
-                </motion.a>
+                {showDashboardAction && (
+                  <motion.a
+                    href="#cms-dashboard"
+                    className="flex items-center gap-2 bg-gradient-to-r from-[#a855f7] to-[#9333ea] text-white px-5 py-3 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif] text-[16px] hover:shadow-lg transition-shadow"
+                    whileHover={{ scale: 1.05, boxShadow: '0 10px 30px rgba(168, 85, 247, 0.3)' }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <LayoutDashboard size={20} />
+                    Dashboard
+                  </motion.a>
+                )}
               </>
-            )}
+            ) : null}
 
             <a
               href="#contact"
@@ -213,7 +218,7 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             })}
 
             {/* Mobile Auth Buttons */}
-            {!isAuthenticated ? (
+            {showAuthActions ? (
               <>
                 <a
                   href="#login"
@@ -223,16 +228,18 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
                   <LogIn size={20} />
                   <span>Se connecter</span>
                 </a>
-                <a
-                  href="#register"
-                  className="flex items-center gap-3 text-white py-3 px-3 rounded-lg bg-white/20 border-2 border-white/30 font-['Abhaya_Libre:Bold',sans-serif]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <UserPlus size={20} />
-                  <span>S'inscrire</span>
-                </a>
+                {registrationEnabled && (
+                  <a
+                    href="#register"
+                    className="flex items-center gap-3 text-white py-3 px-3 rounded-lg bg-white/20 border-2 border-white/30 font-['Abhaya_Libre:Bold',sans-serif]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <UserPlus size={20} />
+                    <span>S'inscrire</span>
+                  </a>
+                )}
               </>
-            ) : (
+            ) : showDashboardAction ? (
               <a
                 href="#cms-dashboard"
                 className="flex items-center gap-3 text-white py-3 px-3 rounded-lg bg-[#a855f7] border-2 border-[#a855f7] font-['Abhaya_Libre:Bold',sans-serif]"
@@ -241,7 +248,7 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
                 <LayoutDashboard size={20} />
                 <span>Dashboard</span>
               </a>
-            )}
+            ) : null}
 
             <a
               href="#contact"

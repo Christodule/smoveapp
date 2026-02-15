@@ -120,7 +120,7 @@ export const APP_CONFIG = {
 
   // API Configuration (for future backend)
   api: {
-    baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
     timeout: 10000,
     retries: 3,
     endpoints: {
@@ -134,8 +134,8 @@ export const APP_CONFIG = {
 
   // Authentication
   auth: {
-    storageKey: 'smove_user',
-    usersStorageKey: 'smove_users',
+    // Client-side identity storage is intentionally disabled.
+    // Sessions must come from backend auth endpoints.
     tokenExpiry: 24 * 60 * 60 * 1000, // 24 hours
     defaultRole: 'editor',
     roles: ['admin', 'editor', 'viewer'],
@@ -143,8 +143,6 @@ export const APP_CONFIG = {
 
   // localStorage Keys
   storage: {
-    user: 'smove_user',
-    users: 'smove_users',
     projects: 'smove_projects',
     blog: 'smove_blog_posts',
     media: 'smove_media_files',
@@ -199,7 +197,7 @@ export const APP_CONFIG = {
 
   // Development Settings
   dev: {
-    debug: process.env.NODE_ENV === 'development',
+    debug: import.meta.env.DEV,
     showGrid: false,
     showBoundingBoxes: false,
     logPerformance: false,

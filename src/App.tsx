@@ -582,8 +582,42 @@ function HomePageContent() {
 
 const HOME_SECTIONS = new Set(['services', 'about', 'portfolio', 'contact']);
 
+interface SecurityStatePageProps {
+  title: string;
+  description: string;
+  actionHref: string;
+  actionLabel: string;
+}
+
+function SecurityStatePage({ title, description, actionHref, actionLabel }: SecurityStatePageProps) {
+  return (
+    <div className="min-h-screen bg-[#f5f9fa] flex items-center justify-center px-6">
+      <div className="max-w-xl w-full bg-white rounded-[20px] shadow-sm border border-[#eef3f5] p-8 text-center">
+        <h1 className="font-['Medula_One:Regular',sans-serif] text-[32px] tracking-[2px] uppercase text-[#273a41] mb-4">
+          {title}
+        </h1>
+        <p className="font-['Abhaya_Libre:Regular',sans-serif] text-[16px] text-[#38484e] mb-6">
+          {description}
+        </p>
+        <a
+          href={actionHref}
+          className="inline-flex items-center justify-center bg-[#00b3e8] text-white px-6 py-3 rounded-[12px] font-['Abhaya_Libre:Bold',sans-serif]"
+        >
+          {actionLabel}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const {
+    isAuthenticated,
+    isAuthReady,
+    canAccessCMS,
+    cmsEnabled,
+    registrationEnabled,
+  } = useAuth();
   const [currentPage, setCurrentPage] = useState('home');
   const [cmsSection, setCmsSection] = useState('overview');
   const pendingSectionScroll = useRef<string | null>(null);
@@ -591,11 +625,41 @@ function AppContent() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1) || 'home';
+      const isCmsRoute = hash === 'cms-dashboard' || hash.startsWith('cms-');
 
-      if ((hash === 'cms-dashboard' || hash.startsWith('cms-')) && !isAuthenticated) {
+      if (isCmsRoute && !cmsEnabled) {
+        setCurrentPage('cms-unavailable');
+        if (window.location.hash !== '#cms-unavailable') {
+          window.location.hash = 'cms-unavailable';
+        }
+        return;
+      }
+
+      if (hash === 'register' && !registrationEnabled) {
         setCurrentPage('login');
         if (window.location.hash !== '#login') {
           window.location.hash = 'login';
+        }
+        return;
+      }
+
+      if (isCmsRoute && !isAuthReady) {
+        setCurrentPage('auth-loading');
+        return;
+      }
+
+      if (isCmsRoute && !isAuthenticated) {
+        setCurrentPage('login');
+        if (window.location.hash !== '#login') {
+          window.location.hash = 'login';
+        }
+        return;
+      }
+
+      if (isCmsRoute && !canAccessCMS) {
+        setCurrentPage('cms-forbidden');
+        if (window.location.hash !== '#cms-forbidden') {
+          window.location.hash = 'cms-forbidden';
         }
         return;
       }
@@ -613,7 +677,7 @@ function AppContent() {
     window.addEventListener('hashchange', handleHashChange);
     
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAuthReady, canAccessCMS, cmsEnabled, registrationEnabled]);
 
   useEffect(() => {
     if (pendingSectionScroll.current) {
@@ -633,20 +697,103 @@ function AppContent() {
   }, [currentPage]);
 
   const renderPage = () => {
+    if (currentPage === 'auth-loading') {
+      return (
+        <SecurityStatePage
+          title="Vérification de session"
+          description="Validation de votre session en cours..."
+          actionHref="#home"
+          actionLabel="Retour à l'accueil"
+        />
+      );
+    }
+
     // Auth pages
     if (currentPage === 'login') {
+      if (!cmsEnabled) {
+        return (
+          <SecurityStatePage
+            title="CMS désactivé"
+            description="Le CMS est désactivé dans cet environnement tant qu'un backend d'authentification sécurisé n'est pas configuré."
+            actionHref="#home"
+            actionLabel="Retour à l'accueil"
+          />
+        );
+      }
       return <LoginPage />;
     }
     if (currentPage === 'register') {
+      if (!registrationEnabled) {
+        return (
+          <SecurityStatePage
+            title="Inscription désactivée"
+            description="L'inscription publique est désactivée. Seuls les comptes provisionnés par un administrateur peuvent accéder au CMS."
+            actionHref="#login"
+            actionLabel="Aller à la connexion"
+          />
+        );
+      }
       return <RegisterPage />;
     }
 
     // CMS pages
     if (currentPage === 'cms-dashboard' || currentPage.startsWith('cms-')) {
+      if (!cmsEnabled) {
+        return (
+          <SecurityStatePage
+            title="CMS désactivé"
+            description="Le CMS est indisponible dans cet environnement."
+            actionHref="#home"
+            actionLabel="Retour à l'accueil"
+          />
+        );
+      }
+      if (!isAuthReady) {
+        return (
+          <SecurityStatePage
+            title="Vérification de session"
+            description="Validation de votre session en cours..."
+            actionHref="#home"
+            actionLabel="Retour à l'accueil"
+          />
+        );
+      }
       if (!isAuthenticated) {
         return <LoginPage />;
       }
+      if (!canAccessCMS) {
+        return (
+          <SecurityStatePage
+            title="Accès refusé"
+            description="Votre compte n'a pas les permissions administrateur nécessaires pour accéder au CMS."
+            actionHref="#home"
+            actionLabel="Retour à l'accueil"
+          />
+        );
+      }
       return <CMSDashboard currentSection={cmsSection} onSectionChange={setCmsSection} />;
+    }
+
+    if (currentPage === 'cms-unavailable') {
+      return (
+        <SecurityStatePage
+          title="CMS désactivé"
+          description="Le CMS est désactivé dans cet environnement tant qu'un backend d'authentification sécurisé n'est pas configuré."
+          actionHref="#home"
+          actionLabel="Retour à l'accueil"
+        />
+      );
+    }
+
+    if (currentPage === 'cms-forbidden') {
+      return (
+        <SecurityStatePage
+          title="Accès refusé"
+          description="Votre session est valide mais vous n'avez pas les droits administrateur requis."
+          actionHref="#home"
+          actionLabel="Retour à l'accueil"
+        />
+      );
     }
 
     // Check if it's a project detail page
@@ -700,7 +847,8 @@ function AppContent() {
       {renderPage()}
       
       {/* Scroll to Top Button - hide on auth/cms pages */}
-      {!['login', 'register'].includes(currentPage) && !currentPage.startsWith('cms-') && (
+      {!['login', 'register', 'auth-loading', 'cms-unavailable', 'cms-forbidden'].includes(currentPage) &&
+        !currentPage.startsWith('cms-') && (
         <motion.button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-8 right-8 bg-[#00b3e8] text-white p-4 rounded-full shadow-lg z-50"
