@@ -166,18 +166,12 @@ interface MediaFile {
 
 ---
 
-### 💾 **6. Local Storage Structure**
+### 💾 **6. Stockage local (contenu uniquement)**
 
 ```javascript
-// Users
-localStorage.setItem('smove_users', JSON.stringify([
-  { id, email, password, name, role }
-]))
-
-// Current User (session)
-localStorage.setItem('smove_user', JSON.stringify({
-  id, email, name, role
-}))
+// IMPORTANT:
+// - Aucun compte utilisateur ni session ne doit être stocké côté client.
+// - L'authentification passe par /api/auth/* (backend + cookies httpOnly).
 
 // Blog Posts
 localStorage.setItem('smove_blog_posts', JSON.stringify([
