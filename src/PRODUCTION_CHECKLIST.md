@@ -131,7 +131,7 @@ npm run preview
 3. Click "Voir tous nos projets" → /#projects
 4. Click project card → /#project-{id}
 5. Click "Se connecter" → /#login
-6. Login avec admin@smove.com / admin123
+6. Login avec un compte admin backend (sans credentials hardcodés)
 7. Redirected to /#cms-dashboard
 8. Navigation shows user avatar + Dashboard button
 9. Click "Dashboard" → CMS loads
@@ -453,8 +453,8 @@ git push --force
 
 ```
 CMS Admin:
-Email: admin@smove.com
-Password: [À CHANGER EN PRODUCTION]
+Provisionné côté backend uniquement
+Password: [STOCKÉ HASHÉ, JAMAIS CÔTÉ CLIENT]
 
 Vercel:
 Email: [votre-email]

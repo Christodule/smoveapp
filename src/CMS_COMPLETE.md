@@ -9,9 +9,9 @@
 - Formulaire de connexion
 - Validation des champs
 - Messages d'erreur animés
-- **Compte démo** :
-  - Email: `admin@smove.com`
-  - Password: `admin123`
+- **Accès sécurisé** :
+  - Authentification via backend (`/api/auth/*`)
+  - Compte de dev configurable via variables `VITE_DEV_ADMIN_*`
 
 #### **Register Page** (#register)
 - Design 3D avec gradient inversé
@@ -23,8 +23,8 @@
 #### **AuthContext** - Gestion centralisée
 - `useAuth()` hook pour accéder au contexte
 - Fonctions: `login()`, `register()`, `logout()`
-- Stockage dans localStorage
-- Persistance de session
+- Session backend (cookies httpOnly + CSRF)
+- Rejet explicite des sessions stockées côté client
 
 ---
 
@@ -228,11 +228,9 @@ localStorage.setItem('smove_media_files', JSON.stringify([
 ### **Connexion au CMS** :
 
 1. Aller sur `#login`
-2. Utiliser les identifiants démo :
-   - Email : `admin@smove.com`
-   - Password : `admin123`
+2. Utiliser un compte administrateur provisionné par le backend
 3. Cliquer "Se connecter"
-4. Redirection vers `#cms-dashboard`
+4. Redirection vers `#cms-dashboard` si rôle `admin`
 
 ### **Inscription nouveau compte** :
 
@@ -407,7 +405,8 @@ Vous avez maintenant un **CMS complet et professionnel** avec :
 ## 📞 Quick Reference
 
 **Comptes** :
-- Admin : admin@smove.com / admin123
+- Aucun compte par défaut en production
+- Compte dev uniquement via `VITE_DEV_ADMIN_*`
 
 **Routes** :
 - Login : `#login`

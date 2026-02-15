@@ -120,7 +120,7 @@ export const APP_CONFIG = {
 
   // API Configuration (for future backend)
   api: {
-    baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
     timeout: 10000,
     retries: 3,
     endpoints: {
@@ -199,7 +199,7 @@ export const APP_CONFIG = {
 
   // Development Settings
   dev: {
-    debug: process.env.NODE_ENV === 'development',
+    debug: import.meta.env.DEV,
     showGrid: false,
     showBoundingBoxes: false,
     logPerformance: false,

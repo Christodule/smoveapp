@@ -139,11 +139,17 @@ Login    : http://localhost:5173/#login
 CMS      : http://localhost:5173/#cms-dashboard
 ```
 
-### Compte démo
+### Accès CMS sécurisé
 
-```
-Email    : admin@smove.com
-Password : admin123
+Le CMS est **désactivé en production par défaut**.  
+Pour un environnement local, configurez un compte admin de développement via variables d'environnement :
+
+```bash
+VITE_ENABLE_CMS=true
+VITE_ENABLE_DEV_ADMIN=true
+VITE_DEV_ADMIN_EMAIL=admin.local@smove.test
+VITE_DEV_ADMIN_PASSWORD=change-me-now
+VITE_DEV_ADMIN_NAME=Dev Admin
 ```
 
 ---
@@ -379,21 +385,18 @@ function Component() {
 }
 ```
 
-### LocalStorage
+### Session sécurisée
 
-```javascript
-// User session
-localStorage.setItem('smove_user', JSON.stringify({
-  id: '1',
-  email: 'admin@smove.com',
-  name: 'Admin SMOVE',
-  role: 'admin'
-}));
+```typescript
+// Récupération de session via backend (cookies httpOnly + CSRF)
+const response = await fetch('/api/auth/session', {
+  credentials: 'include',
+});
 
-// Users database
-localStorage.setItem('smove_users', JSON.stringify([
-  { id, email, password, name, role }
-]));
+if (response.ok) {
+  const { user } = await response.json();
+  // user est validé par le backend, aucun mot de passe côté client
+}
 ```
 
 ---
@@ -591,7 +594,8 @@ Pour toute question :
 1. `npm install`
 2. `npm run dev`
 3. Ouvrir `http://localhost:5173`
-4. Se connecter : `admin@smove.com` / `admin123`
-5. Explorer le dashboard CMS!
+4. Configurer vos variables `VITE_ENABLE_CMS` et `VITE_DEV_ADMIN_*`
+5. Se connecter avec votre compte de développement ou backend
+6. Explorer le dashboard CMS
 
 **Bon développement! 💻✨**

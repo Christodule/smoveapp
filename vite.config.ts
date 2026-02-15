@@ -3,6 +3,15 @@
   import react from '@vitejs/plugin-react-swc';
   import path from 'path';
 
+  const SECURITY_HEADERS = {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    'Content-Security-Policy':
+      "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;",
+  };
+
   export default defineConfig({
     plugins: [react()],
     resolve: {
@@ -119,5 +128,9 @@
     server: {
       port: 3000,
       open: true,
+      headers: SECURITY_HEADERS,
+    },
+    preview: {
+      headers: SECURITY_HEADERS,
     },
   });
